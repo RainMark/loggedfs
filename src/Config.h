@@ -25,7 +25,6 @@
 #ifndef LOGGEDFS_CONFIG_H
 #define LOGGEDFS_CONFIG_H
 
-using namespace std;
 #include <vector>
 #include <libxml/parser.h>
 #include <libxml/tree.h>

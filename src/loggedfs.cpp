@@ -35,7 +35,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
-#include <sys/statfs.h>
+#include <sys/statvfs.h>
 #ifdef HAVE_SETXATTR
 #include <sys/xattr.h>
 #endif
@@ -61,7 +61,7 @@ using namespace rlog;
 
 static RLogChannel *Info = DEF_CHANNEL("info", Log_Info);
 static Config config;
-static int savefd;
+// static int savefd;
 static int fileLog=0;
 static StdioNode* fileLogNode=NULL;
 
@@ -102,12 +102,11 @@ static char* getAbsolutePath(const char *path)
 
 static char* getRelativePath(const char* path)
 {
-    char* rPath=new char[strlen(path)+2];
-
-    strcpy(rPath,".");
-    strcat(rPath,path);
-
-    return rPath;
+    std::string tmp_path = "/tmp/";
+    char *dst_path = new char[strlen(path) + tmp_path.length() + 1];
+    strcpy(dst_path, tmp_path.c_str());
+    strcat(dst_path, path);
+    return dst_path;
 }
 
 /*
@@ -160,8 +159,8 @@ static void loggedfs_log(const char* path,const char* action,const int returncod
 
 static void* loggedFS_init(struct fuse_conn_info* info)
 {
-     fchdir(savefd);
-     close(savefd);
+     // fchdir(savefd);
+     // close(savefd);
      return NULL;
 }
 
@@ -173,12 +172,11 @@ static int loggedFS_getattr(const char *path, struct stat *stbuf)
     char *aPath=getAbsolutePath(path);
     path=getRelativePath(path);
     res = lstat(path, stbuf);
-    loggedfs_log(aPath,"getattr",res,"getattr %s",aPath);
     delete [] aPath;
     delete [] path;
     if(res == -1)
         return -errno;
-
+    loggedfs_log(aPath,"getattr",res,"getattr %s",aPath);
     return 0;
 }
 
@@ -752,7 +750,7 @@ bool processArgs(int argc, char *argv[], LoggedFS_Args *out)
 // logging the ~/.kde/share/config directory, in which hard links for lock
 // files are verified by their inode equivalency.
 
-#define COMMON_OPTS "nonempty,use_ino"
+#define COMMON_OPTS ""
 
     while ((res = getopt (argc, argv, "hpfec:l:")) != -1)
     {
@@ -769,7 +767,7 @@ bool processArgs(int argc, char *argv[], LoggedFS_Args *out)
             break;
         case 'p':
             PUSHARG("-o");
-            PUSHARG("allow_other,default_permissions," COMMON_OPTS);
+            PUSHARG("allow_other,default_permissions");
             got_p = true; 
             rLog(Info,"LoggedFS running as a public filesystem");
             break;
@@ -797,8 +795,8 @@ bool processArgs(int argc, char *argv[], LoggedFS_Args *out)
 
     if (!got_p)
     {
-        PUSHARG("-o");
-        PUSHARG(COMMON_OPTS);
+        // PUSHARG("-o");
+        // PUSHARG(COMMON_OPTS);
     }
 #undef COMMON_OPTS
 
@@ -932,7 +930,7 @@ int main(int argc, char *argv[])
 
         rLog(Info,"chdir to %s",loggedfsArgs->mountPoint);
         chdir(loggedfsArgs->mountPoint);
-        savefd = open(".", 0);
+        // savefd = open(".", 0);
 
 #if (FUSE_USE_VERSION==25)
         fuse_main(loggedfsArgs->fuseArgc,

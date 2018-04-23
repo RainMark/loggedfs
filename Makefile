@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-Wall -ansi -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26 -DRLOG_COMPONENT="loggedfs" `xml2-config --cflags`
-LDFLAGS=-Wall -ansi -lpcre -lfuse -lrlog `xml2-config --libs`
+CFLAGS=-Wall -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26 -DRLOG_COMPONENT="loggedfs" `xml2-config --cflags` `pkg-config --cflags fuse`
+LDFLAGS=-Wall -lpcre -lrlog `xml2-config --libs` `pkg-config --libs fuse`
 srcdir=src
 builddir=build
 
